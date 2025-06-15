@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { scheduleNotification } from "../utils/notification";
+
 import {
   SafeAreaView,
   View,
@@ -50,6 +52,12 @@ export default function EditTaskForm({ route, navigation }) {
 
       tasks[index] = updatedTask;
       await AsyncStorage.setItem("tasks", JSON.stringify(tasks));
+
+      // 🔔 Schedule notification if notify is true
+      if (updatedTask.notify) {
+        const taskKey = updatedTask.title + updatedTask.dueDate;
+        scheduleNotification(updatedTask, taskKey);
+      }
 
       Alert.alert("Task Updated", "✅ Task updated successfully!", [
         {

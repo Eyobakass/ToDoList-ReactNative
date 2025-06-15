@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { scheduleNotification } from "../utils/notification";
+
 import {
   SafeAreaView,
   View,
@@ -88,6 +90,12 @@ export default function AddTaskForm() {
       addTask(newTask); // pass it to the parent if needed
     }
 
+    // Schedule notification if applicable
+    if (newTask.notify) {
+      const taskKey = newTask.title + newTask.dueDate; // or use an ID if available
+      scheduleNotification(newTask, taskKey);
+    }
+    
     setModalVisible(false);
     setTitle("");
     setDescription("");
