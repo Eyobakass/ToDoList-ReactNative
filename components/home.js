@@ -17,6 +17,12 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import moment from "moment";
 import CheckBox from "expo-checkbox";
 import { navigationRef } from "../navigation/navigationRef";
+import {
+  requestNotificationPermission,
+  syncTaskNotifications,
+} from "../utils/notification";
+
+
 const categories = [
   "All",
   "Highly Important",
@@ -28,17 +34,16 @@ const categories = [
   "Beyond A Month",
   "Completed Tasks",
 ];
-import {
-  requestNotificationPermission,
-  syncTaskNotifications,
-} from "../utils/notification";
-
 export default function Home() {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("Today");
   const [activeWidget, setActiveWidget] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+
   const navigation = useNavigation();
+  const styles = StyleSheet.create(getStyles(darkMode));
+
 
   useEffect(() => {
     loadTasks();
@@ -58,7 +63,20 @@ export default function Home() {
   useEffect(() => {
     requestNotificationPermission();
   }, []);
-
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem("darkMode");
+      setDarkMode(stored === "true");
+    })();
+  }, []);
+  const toggleDarkMode = async () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode); // instantly update UI
+    await AsyncStorage.setItem("darkMode", JSON.stringify(newMode)); // save after
+    console.log("Dark mode toggled:", newMode);
+  };
+  
+    
   const saveTasks = async (updatedTasks) => {
     setTasks(updatedTasks);
     await AsyncStorage.setItem("tasks", JSON.stringify(updatedTasks));
@@ -96,6 +114,13 @@ export default function Home() {
 
   const handleNotifyToggle = (taskIndex) => {
     const updated = [...tasks];
+    if (updated[taskIndex].done) {
+      Alert.alert(
+        "Cannot Toggle Notify",
+        "You cannot toggle notify for completed tasks."
+      );
+      return;
+    }
     updated[taskIndex].notify = !updated[taskIndex].notify;
     console.log("Notify toggled:", updated[taskIndex].notify);
     saveTasks(updated);
@@ -153,7 +178,12 @@ export default function Home() {
           <Text style={styles.taskTitle}>{item.title}</Text>
           <CheckBox
             value={item.done}
-            onValueChange={() => handleCheckToggle(tasks.indexOf(item))}
+            onValueChange={() => {
+              if (item.notify) {
+                handleNotifyToggle(tasks.indexOf(item));
+              }
+              handleCheckToggle(tasks.indexOf(item));
+            }}
           />
         </View>
         <Text style={styles.taskDesc}>{item.description}</Text>
@@ -170,7 +200,7 @@ export default function Home() {
             <Pressable
               style={styles.actionBtn}
               onPress={() => {
-                if (navigationRef.isReady()) {
+                if (navigationRef.isReady() && !item.done) {
                   navigationRef.navigate("EditTaskForm", {
                     task: item,
                     index: tasks.indexOf(item),
@@ -178,7 +208,13 @@ export default function Home() {
                 }
               }}
             >
-              <Text style={styles.actionText}>✏️ Edit</Text>
+              {
+                item.done ? (
+                  <Text style={styles.actionText}>✅ Completed</Text>
+                ) : (
+                  <Text style={styles.actionText}>📝 Edit</Text>
+                )
+              }
             </Pressable>
             <Pressable
               style={[styles.actionBtn, { backgroundColor: "#ff5252" }]}
@@ -198,7 +234,10 @@ export default function Home() {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Tasks</Text>
+      <Text style={{ marginBottom: 10, flexDirection: "row" }}>
+        <Text style={styles.header}>Tasks</Text>
+        <Switch value={darkMode} onValueChange={toggleDarkMode} />
+      </Text>
       <ScrollView
         horizontal
         style={styles.categoryScroll}
@@ -243,16 +282,17 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (darkMode) => ({
   container: {
     paddingTop: 10,
     paddingHorizontal: 15,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: darkMode ? "#121212" : "#f5f5f5",
   },
   header: {
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 5,
+    color: darkMode ? "#ffffff" : "#000000",
   },
   categoryScroll: {
     flexDirection: "row",
@@ -265,18 +305,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 20,
     marginRight: 8,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: darkMode ? "#2c2c2c" : "#e0e0e0",
   },
   selectedCategory: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#2196F3", // Keep this the same
   },
   categoryText: {
     fontSize: 14,
-    color: "#000",
+    color: darkMode ? "#ffffff" : "#000000",
   },
   selectedCategoryText: {
     fontSize: 14,
-    color: "#fff",
+    color: "#ffffff",
   },
   taskList: {
     top: 10,
@@ -289,6 +329,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     elevation: 3,
+    backgroundColor: darkMode ? "#1e1e1e" : "#ffffff",
   },
   taskHeader: {
     flexDirection: "row",
@@ -299,14 +340,16 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    color: darkMode ? "#ffffff" : "#000000",
   },
   taskDesc: {
     fontSize: 14,
     marginBottom: 5,
+    color: darkMode ? "#cccccc" : "#000000",
   },
   taskDue: {
     fontSize: 13,
-    color: "#555",
+    color: darkMode ? "#bbbbbb" : "#555555",
     marginBottom: 5,
   },
   taskActions: {
@@ -326,7 +369,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   actionText: {
-    color: "#fff",
+    color: "#ffffff",
     fontWeight: "600",
   },
   addBtn: {
@@ -342,7 +385,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   addText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 32,
     fontWeight: "bold",
   },
