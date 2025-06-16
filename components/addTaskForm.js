@@ -14,7 +14,7 @@ import {
   Switch,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
+import MapView,{marker} from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function AddTaskForm() {
   const{darkMode,toggleDarkMode} = useContext(DarkModeContext);
@@ -27,6 +27,15 @@ export default function AddTaskForm() {
   const [modalVisible, setModalVisible] = useState(false);
   const [notify, setNotify] = useState(false);
   const [importance, setImportance] = useState("medium"); // "high" | "medium" | "low"
+
+  const [location, setLocation] = useState(null);
+  const [region, setRegion] = useState({
+    latitude: 9.03, // default (Addis Ababa)
+    longitude: 38.74,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+  
 
   const addTask = async (newTask) => {
     try {
@@ -85,6 +94,7 @@ export default function AddTaskForm() {
       dueDate,
       notify,
       importance,
+      location,
       done: false,
     };
 
@@ -228,6 +238,21 @@ export default function AddTaskForm() {
           </View>
         </View>
       </Modal>
+      <View style={{ height: 200, marginVertical: 10 }}>
+        <MapView
+          style={{ flex: 1 }}
+          region={region}
+          onPress={(e) => setLocation(e.nativeEvent.coordinate)}
+        >
+          {location && (
+            <Marker
+              coordinate={location}
+              draggable
+              onDragEnd={(e) => setLocation(e.nativeEvent.coordinate)}
+            />
+          )}
+        </MapView>
+      </View>
     </SafeAreaView>
   );
 }

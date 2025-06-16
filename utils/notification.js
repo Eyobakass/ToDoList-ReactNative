@@ -52,6 +52,27 @@ export async function scheduleNotification(task, taskKey) {
     notifications.push(await createNotification(dueDate));
   }
 
+  if (task.location && task.location.latitude && task.location.longitude) {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === "granted") {
+      try {
+        await Location.startGeofencingAsync("TASK_GEOFENCE", [
+          {
+            identifier: taskKey,
+            latitude: task.location.latitude,
+            longitude: task.location.longitude,
+            radius: 100,
+            notifyOnEnter: true,
+            notifyOnExit: false,
+          },
+        ]);
+      } catch (err) {
+        console.warn("Geofencing error:", err);
+      }
+    }
+  }
+
+
   taskNotificationMap.set(taskKey, notifications);
 }
 
@@ -65,6 +86,7 @@ export async function cancelNotification(taskKey) {
   for (const id of idList) {
     await Notifications.cancelScheduledNotificationAsync(id);
   }
+  await Location.stopGeofencingAsync("TASK_GEOFENCE").catch(() => {});
 
   taskNotificationMap.delete(taskKey);
 }
