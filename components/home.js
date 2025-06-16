@@ -24,12 +24,13 @@ import {
 import { DarkModeContext } from "../context/darkModeContext";
 
 const categories = [
+  "Today",
   "All",
   "Highly Important",
-  "Medium Important",
-  "Low Important",
-  "Today",
+  "Mid-Important",
+  "Less-Important",
   "Within A Week",
+  "Next Week",
   "Within A Month",
   "Beyond A Month",
   "Completed Tasks",
@@ -81,9 +82,9 @@ export default function Home() {
       if (selectedCategory === "All") return task.done === false;
       if (selectedCategory === "Highly Important")
         return task.importance === "high" && !task.done;
-      if (selectedCategory === "Medium Important")
+      if (selectedCategory === "Mid-Important")
         return task.importance === "medium" && !task.done;
-      if (selectedCategory === "Low Important")
+      if (selectedCategory === "Less-Important")
         return task.importance === "low" && !task.done;
       if (selectedCategory === "Today")
         return moment(task.dueDate).isSame(now, "day") && !task.done;
@@ -93,6 +94,8 @@ export default function Home() {
         return moment(task.dueDate).diff(now, "days") <= 30 && !task.done;
       if (selectedCategory === "Beyond A Month")
         return moment(task.dueDate).diff(now, "days") > 30 && !task.done;
+      if (selectedCategory === "Next Week")
+        return (moment(task.dueDate).diff(now, "days") >= 7) && (moment(task.dueDate).diff(now,"days")<=14) && !task.done;
       if (selectedCategory === "Completed Tasks") return task.done === true;
       return false;
     });
@@ -221,7 +224,7 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <Text style={{ marginBottom: 10, flexDirection: "row" }}>
         <Text style={styles.header}>Tasks</Text>
-        <Switch value={darkMode} onValueChange={toggleDarkMode} />
+        <Switch value={darkMode} onValueChange={toggleDarkMode} style={{ right: 0 }} />
       </Text>
       <ScrollView
         horizontal
@@ -272,12 +275,15 @@ const getStyles = (darkMode) => ({
     paddingTop: 10,
     paddingHorizontal: 15,
     backgroundColor: darkMode ? "#121212" : "#f5f5f5",
+    overflow: "hidden",
   },
   header: {
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 5,
+    width: "100%",
     color: darkMode ? "#ffffff" : "#000000",
+    
   },
   categoryScroll: {
     flexDirection: "row",
@@ -307,7 +313,9 @@ const getStyles = (darkMode) => ({
     top: 10,
     bottom: 10,
     marginTop: 5,
-    height: "80%",
+    height: "78.3%",
+    maxHeight: "78.8%",
+    backgroundColor: darkMode ? "#121212" : "#f5f5f5",
   },
   taskCard: {
     padding: 15,

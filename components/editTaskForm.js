@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useContext } from "react";
 import { scheduleNotification } from "../utils/notification";
+import { DarkModeContext } from "../context/darkModeContext";
 
 import {
   SafeAreaView,
@@ -17,8 +18,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditTaskForm({ route, navigation }) {
+  const { darkMode, toggleDarkMode } = useContext(DarkModeContext);
   const { task, index } = route.params;
-
   const [title, setTitle] = useState(task.title || "");
   const [description, setDescription] = useState(task.description || "");
   const [dueDate, setDueDate] = useState(new Date(task.dueDate));
@@ -28,6 +29,9 @@ export default function EditTaskForm({ route, navigation }) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
+
+  const styles = StyleSheet.create(getStyles(darkMode));
+  
   const handleSubmit = () => {
     if (!title.trim()) {
       Alert.alert("Validation Error", "Task title is required.");
@@ -198,98 +202,104 @@ export default function EditTaskForm({ route, navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingTop: 50,
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  label: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 10,
-    marginTop: 5,
-  },
-  timeNotifyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  notifyContainer: {
-    alignItems: "center",
-  },
-  importanceContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 10,
-  },
-  importanceButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 20,
-  },
-  importanceHigh: {
-    backgroundColor: "#ff6b6b",
-    borderColor: "#ff6b6b",
-  },
-  importanceMedium: {
-    backgroundColor: "#ffa500",
-    borderColor: "#ffa500",
-  },
-  importanceLow: {
-    backgroundColor: "#48c774",
-    borderColor: "#48c774",
-  },
-  importanceText: {
-    color: "#000",
-    fontWeight: "bold",
-    textTransform: "capitalize",
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: "80%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    elevation: 10,
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  button: {
-    padding: 10,
-    backgroundColor: "#1E90FF",
-    borderRadius: 6,
-    minWidth: 80,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-});
+const getStyles = (darkMode) =>
+  StyleSheet.create({
+    container: {
+      padding: 20,
+      paddingTop: 50,
+      flex: 1,
+      backgroundColor: darkMode ? "#121212" : "#fff",
+    },
+    header: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 20,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+    label: {
+      marginTop: 10,
+      fontSize: 16,
+      color: darkMode ? "#dddddd" : "#000000",
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 6,
+      padding: 10,
+      marginTop: 5,
+      backgroundColor: darkMode ? "#1e1e1e" : "#ffffff",
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+    timeNotifyRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    notifyContainer: {
+      alignItems: "center",
+    },
+    importanceContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginTop: 10,
+    },
+    importanceButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 20,
+      backgroundColor: darkMode ? "#2a2a2a" : "#f0f0f0",
+    },
+    importanceHigh: {
+      backgroundColor: "#ff6b6b",
+      borderColor: "#ff6b6b",
+    },
+    importanceMedium: {
+      backgroundColor: "#ffa500",
+      borderColor: "#ffa500",
+    },
+    importanceLow: {
+      backgroundColor: "#48c774",
+      borderColor: "#48c774",
+    },
+    importanceText: {
+      color: darkMode ? "#ffffff" : "#000000",
+      fontWeight: "bold",
+      textTransform: "capitalize",
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContainer: {
+      width: "80%",
+      backgroundColor: darkMode ? "#1e1e1e" : "#fff",
+      padding: 20,
+      borderRadius: 8,
+      elevation: 10,
+    },
+    modalText: {
+      fontSize: 16,
+      marginBottom: 20,
+      textAlign: "center",
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+    modalButtons: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+    },
+    button: {
+      padding: 10,
+      backgroundColor: "#1E90FF",
+      borderRadius: 6,
+      minWidth: 80,
+      alignItems: "center",
+    },
+    buttonText: {
+      color: "#fff",
+      fontWeight: "600",
+    },
+  });
