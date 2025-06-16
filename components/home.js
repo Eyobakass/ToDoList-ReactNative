@@ -1,5 +1,5 @@
 // Home.js
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import {
   requestNotificationPermission,
   syncTaskNotifications,
 } from "../utils/notification";
-
+import { DarkModeContext } from "../context/darkModeContext";
 
 const categories = [
   "All",
@@ -35,15 +35,15 @@ const categories = [
   "Completed Tasks",
 ];
 export default function Home() {
+  const { darkMode, toggleDarkMode } = useContext(DarkModeContext);
+
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("Today");
   const [activeWidget, setActiveWidget] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
 
   const navigation = useNavigation();
   const styles = StyleSheet.create(getStyles(darkMode));
-
 
   useEffect(() => {
     loadTasks();
@@ -63,20 +63,7 @@ export default function Home() {
   useEffect(() => {
     requestNotificationPermission();
   }, []);
-  useEffect(() => {
-    (async () => {
-      const stored = await AsyncStorage.getItem("darkMode");
-      setDarkMode(stored === "true");
-    })();
-  }, []);
-  const toggleDarkMode = async () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode); // instantly update UI
-    await AsyncStorage.setItem("darkMode", JSON.stringify(newMode)); // save after
-    console.log("Dark mode toggled:", newMode);
-  };
-  
-    
+
   const saveTasks = async (updatedTasks) => {
     setTasks(updatedTasks);
     await AsyncStorage.setItem("tasks", JSON.stringify(updatedTasks));
@@ -208,13 +195,11 @@ export default function Home() {
                 }
               }}
             >
-              {
-                item.done ? (
-                  <Text style={styles.actionText}>✅ Completed</Text>
-                ) : (
-                  <Text style={styles.actionText}>📝 Edit</Text>
-                )
-              }
+              {item.done ? (
+                <Text style={styles.actionText}>✅ Completed</Text>
+              ) : (
+                <Text style={styles.actionText}>📝 Edit</Text>
+              )}
             </Pressable>
             <Pressable
               style={[styles.actionBtn, { backgroundColor: "#ff5252" }]}
